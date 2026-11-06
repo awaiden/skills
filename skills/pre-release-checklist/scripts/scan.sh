@@ -6,6 +6,7 @@ set -u
 cd "${1:-.}" || exit 2
 git rev-parse --git-dir >/dev/null 2>&1 || { echo "BLOCKER|git|not a git repository"; exit 2; }
 say() { echo "$1|$2|$3"; }
+any() { for f in "$@"; do [ -e "$f" ] && return 0; done; return 1; }
 has() { command -v "$1" >/dev/null 2>&1; }
 files() { git ls-files -z --cached --others --exclude-standard; }
 
@@ -13,7 +14,7 @@ files() { git ls-files -z --cached --others --exclude-standard; }
 tracked_env=$(git ls-files | grep -E '(^|/)\.env($|\.)' | grep -vE '\.(example|sample|template)$')
 [ -n "$tracked_env" ] && say BLOCKER security "env file tracked by git: $(echo $tracked_env)" || say OK security "no real .env tracked"
 git check-ignore -q .env 2>/dev/null && say OK security ".env is gitignored" || say WARN security ".env is not gitignored"
-ls .env.example .env.sample .env.template >/dev/null 2>&1 && say OK security ".env.example present" || {
+any .env.example .env.sample .env.template && say OK security ".env.example present" || {
   grep -rqE 'process\.env\.|os\.environ|env::var|import\.meta\.env' --include='*.{js,ts,py,rs}' . 2>/dev/null \
     && say WARN security "code reads env vars but no .env.example"; }
 
@@ -46,15 +47,15 @@ c=$(git grep -InE 'TODO|FIXME|XXX|HACK' -- . ':!*lock*' ':!*.md' 2>/dev/null | w
 [ "$c" -gt 0 ] && say INFO cleanliness "$c TODO/FIXME markers"
 
 # 3. Config & build ---------------------------------------------------------
-[ -f package.json ] && ! ls package-lock.json pnpm-lock.yaml yarn.lock bun.lockb bun.lock >/dev/null 2>&1 && say WARN build "package.json without a lockfile"
+[ -f package.json ] && ! any package-lock.json pnpm-lock.yaml yarn.lock bun.lockb bun.lock && say WARN build "package.json without a lockfile"
 [ -f Cargo.toml ] && [ ! -f Cargo.lock ] && say WARN build "Cargo.toml without Cargo.lock (needed for binaries)"
-[ -f pyproject.toml -o -f requirements.txt ] && ! ls uv.lock poetry.lock Pipfile.lock requirements*.txt >/dev/null 2>&1 && say WARN build "Python project without lock/pinned requirements"
+[ -f pyproject.toml -o -f requirements.txt ] && ! any uv.lock poetry.lock Pipfile.lock requirements*.txt && say WARN build "Python project without lock/pinned requirements"
 [ -f package.json ] && grep -qE '"[^"]+": *"(\*|latest)"' package.json && say WARN build "package.json uses * or latest versions"
 
 # 4. Docs -------------------------------------------------------------------
 [ -f README.md ] || say BLOCKER docs "README.md missing"
 [ -f README.md ] && [ "$(wc -l < README.md)" -lt 10 ] && say WARN docs "README.md is very short ($(wc -l < README.md) lines)"
-ls LICENSE LICENSE.md LICENSE.txt COPYING >/dev/null 2>&1 && say OK docs "LICENSE present" || say WARN docs "no LICENSE (required if open source)"
+any LICENSE LICENSE.md LICENSE.txt COPYING && say OK docs "LICENSE present" || say WARN docs "no LICENSE (required if open source)"
 [ -f CONTRIBUTING.md ] || say INFO docs "no CONTRIBUTING.md (only needed if accepting contributions)"
 
 # 5. Git --------------------------------------------------------------------
