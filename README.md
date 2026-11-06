@@ -24,3 +24,7 @@ The scanner also works standalone:
 ```bash
 bash skills/pre-release-checklist/scripts/scan.sh <repo>   # prints LEVEL|group|message lines
 ```
+
+## License
+
+[MIT](LICENSE)
