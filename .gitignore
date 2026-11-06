@@ -1,0 +1,19 @@
+# secrets
+.env
+.env.*
+!.env.example
+
+# OS / editors
+.DS_Store
+.vscode/
+.idea/
+
+# dependencies & build output
+node_modules/
+dist/
+build/
+target/
+__pycache__/
+
+# skill eval workspaces
+*-workspace/
