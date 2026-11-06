@@ -1,6 +1,6 @@
 # skills
 
-A collection of [Claude Code](https://claude.com/claude-code) skills.
+A collection of agent skills that work with any coding agent supported by the [`skills`](https://www.npmjs.com/package/skills) CLI.
 
 | Skill | What it does |
 |---|---|
@@ -9,15 +9,15 @@ A collection of [Claude Code](https://claude.com/claude-code) skills.
 
 ## Install
 
-Copy a skill into your global skills folder (or a project's `.claude/skills/`):
-
 ```bash
-cp -r skills/pre-release-checklist ~/.claude/skills/
+npx skills add awaiden/skills
 ```
+
+Pick the skills and agents you want when prompted. To install one skill only: `npx skills add awaiden/skills --skill pre-release-checklist`.
 
 ## Use
 
-Skills trigger automatically from their descriptions, or invoke one directly, e.g. `/pre-release-checklist`.
+Skills are picked up by your agent from their descriptions, e.g. ask "is this repo ready to push to GitHub?".
 
 The scanner also works standalone:
 
